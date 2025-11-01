@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-oom
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-oom
+  template:
+    metadata:
+      labels:
+        app: nginx-oom
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest
+        resources:
+          limits:
+            memory: "50Mi"
+        command: ["sh", "-c", "stress --vm 1 --vm-bytes 100M --vm-hang 0"]
