@@ -1,0 +1,30 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: blackbox-probe
+  namespace: monitoring
+  labels:
+    release: prometheus-stack    # <- 确保你的 Prometheus 会选中它
+spec:
+  jobLabel: blackbox
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus-blackbox-exporter
+  endpoints:
+  - port: http
+    path: /probe
+    interval: 30s
+    params:
+      module: [http_2xx]
+    relabelings:
+    - sourceLabels: [__param_target]
+      targetLabel: instance
+    - sourceLabels: [__address__]
+      targetLabel: __param_target
+    - regex: (.*):(.+)
+      sourceLabels: [__param_target]
+      targetLabel: instance
+      replacement: $1
+---
+
+

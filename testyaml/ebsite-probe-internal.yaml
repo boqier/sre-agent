@@ -1,0 +1,27 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: website-probe-internal
+  namespace: monitoring
+  labels:
+    release: prometheus-stack
+spec:
+  interval: 30s
+  prober:
+    # 指向 cluster 内已存在的 blackbox-exporter Service
+    url: blackbox-exporter-prometheus-blackbox-exporter.monitoring.svc.cluster.local:9115
+  module: http_2xx
+  targets:
+    staticConfig:
+      static:
+      # ----- 选项 A: 如果你的 http-500-sim 服务在 default 命名空间（最常见）
+      - http://http-500-sim.default.svc.cluster.local:80
+
+      # ----- 选项 B: 如果你的 http-500-sim 服务就在 monitoring 命名空间
+      # - http://http-500-sim.monitoring.svc.cluster.local:80
+
+      # ----- 选项 C: 也可以直接用 ClusterIP（不推荐长期使用，易变）
+      # - http://10.104.166.137:80
+
+      # 可在此追加更多内部/外部 URL
+      # - http://another-service.my-namespace.svc.cluster.local:8080

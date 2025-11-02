@@ -3,6 +3,8 @@ kind: PrometheusRule
 metadata:
   name: pod-failure-alerts
   namespace: monitoring
+  labels:
+    release: prometheus-stack
 spec:
   groups:
   - name: pod-failure.rules
@@ -29,11 +31,3 @@ spec:
         summary: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} was OOMKilled"
         description: "Pod {{ $labels.pod }} container {{ $labels.container }} was killed due to out-of-memory (OOMKilled) in the last 5 minutes. Namespace: {{ $labels.namespace }}."
 
----
-#使用黑盒监控发现服务500错误：
-helm upgrade -i blackbox-exporter prometheus-community/prometheus-blackbox-exporter -n monitoring --create-namespace --version 9.0.1
-部署黑盒监控网站配置：kubectl apply -f ./loki/setup/prometheus/blackbox.probe.yaml
-• 部署黑盒监控 Dashboard：kubectl apply -f ./loki/setup/prometheus/blackbox.dashboard.yaml
-• 进入 Prometheus dashboard 查看黑盒监控 Target：http://ip:30090/targets
-• 需要等待约 1 分钟
-• 访问 Grafana：ip:30080, admin, password123，查看 Blackbox Dashboard

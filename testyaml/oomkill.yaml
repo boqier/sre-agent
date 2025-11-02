@@ -1,22 +1,39 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx-oom
+  name: stress-test
   namespace: default
+  labels:
+    app: stress-test
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: nginx-oom
+      app: stress-test
   template:
     metadata:
       labels:
-        app: nginx-oom
+        app: stress-test
     spec:
       containers:
-      - name: nginx
-        image: nginx:latest
+      - name: stress
+        # 镜像包含 stress 二进制，适合直接做内存压力测试
+        image: progrium/stress:latest
+        # 让 stress 分配 100Mi 的虚拟内存 —— 故意比容器 limit 大，以便触发 OOM
+        command: ["stress"]
+        args: ["--vm", "1", "--vm-bytes", "100M", "--vm-hang", "0"]
         resources:
+          requests:
+            memory: "20Mi"
+            cpu: "50m"
           limits:
-            memory: "50Mi"
-        command: ["sh", "-c", "stress --vm 1 --vm-bytes 100M --vm-hang 0"]
+            memory: "50Mi"   # 故意较低，便于触发 OOM
+            cpu: "200m"
+        # 取消或注释下面 probe，stress 进程一直运行，不需要 readiness probe
+        #readinessProbe:
+        #  exec:
+        #    command: ["pgrep", "stress"]
+        #  initialDelaySeconds: 5
+        #  periodSeconds: 5
+        #  failureThreshold: 3
+      restartPolicy: Always

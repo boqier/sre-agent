@@ -1,0 +1,23 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: blackbox-service-500-rule
+  namespace: monitoring
+  labels:
+    release: prometheus-stack
+spec:
+  groups:
+  - name: blackbox.rules
+    rules:
+    - alert: servie_500
+      expr: probe_http_status_code == 500
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Service returned 500 error - {{ $labels.instance }}"
+        description: |
+          The blackbox probe for {{ $labels.instance }} has been returning HTTP 500 status codes
+          for more than 1 minute.
+          Namespace: {{ if $labels.namespace }}{{ $labels.namespace }}{{ else }}N/A{{ end }}
+          Job: {{ if $labels.job }}{{ $labels.job }}{{ else }}N/A{{ end }}
